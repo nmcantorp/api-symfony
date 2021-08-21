@@ -17,18 +17,21 @@ help: ## Show this help message
 	@echo 'targets:'
 	@egrep '^(.+)\:\ ##\ (.+)' ${MAKEFILE_LIST} | column -t -c 2 -s ':#'
 
+up: ## Up the containers
+	docker-compose up -e U_ID=${UID} -d
+
 run: ## Start the containers
 	docker network create symfony-api-platform-network || true
 	docker-compose up -e U_ID=${UID} -d
 
 stop: ## Stop the containers
-	docker-compose stop -e U_ID=${UID}
+	docker-compose stop
 
 restart: ## Restart the containers
 	$(MAKE) stop && $(MAKE) run
 
 build: ## Rebuilds all the containers
-	docker-compose build -e U_ID=${UID}
+	docker-compose build
 
 prepare: ## Runs backend commands
 	$(MAKE) composer-install
