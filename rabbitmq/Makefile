@@ -22,4 +22,4 @@ build: ## Rebuilds all the containers
 	docker-compose build
 
 ssh: ## ssh's into the container
-	docker exec -it --user ${UID} ${RABBIT} bash -e U_ID=${UID} 
+	docker exec -it ${RABBIT} bash
