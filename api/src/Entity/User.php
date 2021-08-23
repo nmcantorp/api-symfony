@@ -4,36 +4,41 @@ namespace App\Entity;
 
 use App\Repository\UserRepository;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
 use Symfony\Component\Security\Core\User\UserInterface;
-use Symfony\Component\Uid\Uuid;
 
 /**
  * @ORM\Entity(repositoryClass=UserRepository::class)
- * @method string getUserIdentifier()
- * @ORM\HasLifecycleCallbacks()
  */
-class User implements UserInterface
+class User implements UserInterface, PasswordAuthenticatedUserInterface
 {
     /**
      * @ORM\Id
-     * @ORM\Column(type="string")
+     * @ORM\GeneratedValue
+     * @ORM\Column(type="integer")
      */
     private $id;
+
+    /**
+     * @ORM\Column(type="string", length=180, unique=true)
+     */
+    private $email;
+
+    /**
+     * @ORM\Column(type="json")
+     */
+    private $roles = [];
+
+    /**
+     * @var string The hashed password
+     * @ORM\Column(type="string")
+     */
+    private $password;
 
     /**
      * @ORM\Column(type="string", length=100)
      */
     private $name;
-
-    /**
-     * @ORM\Column(type="string", length=255, unique=true)
-     */
-    private $email;
-
-    /**
-     * @ORM\Column(type="string", length=255, nullable=true)
-     */
-    private $password;
 
     /**
      * @ORM\Column(type="string", length=255, nullable=true)
@@ -56,24 +61,19 @@ class User implements UserInterface
     private $active;
 
     /**
-     * @ORM\Column(type="datetime_immutable")
+     * @ORM\Column(type="datetime")
      */
     private $createdAt;
 
     /**
-     * @ORM\Column(type="datetime_immutable")
+     * @ORM\Column(type="datetime")
      */
     private $updatedAt;
 
-    /**
-     * @param $name
-     * @param $email
-     */
     public function __construct($name, $email)
     {
-        $this->id = Uuid::v4()->toRfc4122();
         $this->name = $name;
-        $this->setEmail($email);
+        $this->email = $email;
         $this->password = null;
         $this->avatar = null;
         $this->token = \sha1(\uniqid());
@@ -83,21 +83,9 @@ class User implements UserInterface
         $this->markAsUpdated();
     }
 
-    public function getId(): ?string
+    public function getId(): ?int
     {
         return $this->id;
-    }
-
-    public function getName(): ?string
-    {
-        return $this->name;
-    }
-
-    public function setName(string $name): self
-    {
-        $this->name = $name;
-
-        return $this;
     }
 
     public function getEmail(): ?string
@@ -107,15 +95,52 @@ class User implements UserInterface
 
     public function setEmail(string $email): self
     {
-        if(!\filter_var($email, FILTER_VALIDATE_EMAIL)){
-            throw new \LogicException('Invalid Email');
-        }
         $this->email = $email;
 
         return $this;
     }
 
-    public function getPassword(): ?string
+    /**
+     * A visual identifier that represents this user.
+     *
+     * @see UserInterface
+     */
+    public function getUserIdentifier(): string
+    {
+        return (string) $this->email;
+    }
+
+    /**
+     * @deprecated since Symfony 5.3, use getUserIdentifier instead
+     */
+    public function getUsername(): string
+    {
+        return (string) $this->email;
+    }
+
+    /**
+     * @see UserInterface
+     */
+    public function getRoles(): array
+    {
+        $roles = $this->roles;
+        // guarantee every user at least has ROLE_USER
+        $roles[] = 'ROLE_USER';
+
+        return array_unique($roles);
+    }
+
+    public function setRoles(array $roles): self
+    {
+        $this->roles = $roles;
+
+        return $this;
+    }
+
+    /**
+     * @see PasswordAuthenticatedUserInterface
+     */
+    public function getPassword(): string
     {
         return $this->password;
     }
@@ -127,76 +152,136 @@ class User implements UserInterface
         return $this;
     }
 
-    public function getAvatar(): ?string
+    /**
+     * Returning a salt is only needed, if you are not using a modern
+     * hashing algorithm (e.g. bcrypt or sodium) in your security.yaml.
+     *
+     * @see UserInterface
+     */
+    public function getSalt(): ?string
+    {
+        return null;
+    }
+
+    /**
+     * @see UserInterface
+     */
+    public function eraseCredentials()
+    {
+        // If you store any temporary, sensitive data on the user, clear it here
+        // $this->plainPassword = null;
+    }
+
+    /**
+     * @return mixed
+     */
+    public function getName()
+    {
+        return $this->name;
+    }
+
+    /**
+     * @param mixed $name
+     */
+    public function setName($name): void
+    {
+        $this->name = $name;
+    }
+
+    /**
+     * @return mixed
+     */
+    public function getAvatar()
     {
         return $this->avatar;
     }
 
-    public function setAvatar(?string $avatar): self
+    /**
+     * @param mixed $avatar
+     */
+    public function setAvatar($avatar): void
     {
         $this->avatar = $avatar;
-
-        return $this;
     }
 
-    public function getToken(): ?string
+    /**
+     * @return mixed
+     */
+    public function getToken()
     {
         return $this->token;
     }
 
-    public function setToken(?string $token): self
+    /**
+     * @param mixed $token
+     */
+    public function setToken($token): void
     {
         $this->token = $token;
-
-        return $this;
     }
 
-    public function getResetPasswordToken(): ?string
+    /**
+     * @return mixed
+     */
+    public function getResetPasswordToken()
     {
         return $this->resetPasswordToken;
     }
 
-    public function setResetPasswordToken(?string $resetPasswordToken): self
+    /**
+     * @param mixed $resetPasswordToken
+     */
+    public function setResetPasswordToken($resetPasswordToken): void
     {
         $this->resetPasswordToken = $resetPasswordToken;
-
-        return $this;
     }
 
-    public function getActive(): ?bool
+    /**
+     * @return mixed
+     */
+    public function getActive()
     {
         return $this->active;
     }
 
-    public function setActive(bool $active): self
+    /**
+     * @param mixed $active
+     */
+    public function setActive($active): void
     {
         $this->active = $active;
-
-        return $this;
     }
 
-    public function getCreatedAt(): \DateTime
+    /**
+     * @return mixed
+     */
+    public function getCreatedAt()
     {
         return $this->createdAt;
     }
 
-    public function setCreatedAt(\DateTimeImmutable $createdAt): self
+    /**
+     * @param mixed $createdAt
+     */
+    public function setCreatedAt($createdAt): void
     {
         $this->createdAt = $createdAt;
-
-        return $this;
     }
 
-    public function getUpdatedAt(): ?\DateTimeImmutable
+    /**
+     * @return mixed
+     */
+    public function getUpdatedAt()
     {
         return $this->updatedAt;
     }
 
-    public function setUpdatedAt(\DateTimeImmutable $updatedAt): self
+    /**
+     * @param mixed $updatedAt
+     */
+    public function setUpdatedAt($updatedAt): void
     {
         $this->updatedAt = $updatedAt;
-
-        return $this;
     }
 
     /**
@@ -209,23 +294,4 @@ class User implements UserInterface
         return $this;
     }
 
-    public function getRoles():array
-    {
-        return [];
-    }
-
-    public function getSalt():void
-    {
-        // TODO: Implement getSalt() method.
-    }
-
-    public function eraseCredentials():void
-    {
-        // TODO: Implement eraseCredentials() method.
-    }
-
-    public function getUsername():string
-    {
-        return $this->email;
-    }
 }

@@ -4,11 +4,10 @@ namespace App\Repository;
 
 use App\Entity\User;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
-use Doctrine\ORM\OptimisticLockException;
-use Doctrine\ORM\ORMException;
 use Doctrine\Persistence\ManagerRegistry;
-use Exception\User\UserNotFoundException;
-use Repository\BaseRepository;
+use Symfony\Component\Security\Core\Exception\UnsupportedUserException;
+use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
+use Symfony\Component\Security\Core\User\PasswordUpgraderInterface;
 
 /**
  * @method User|null find($id, $lockMode = null, $lockVersion = null)
@@ -16,8 +15,27 @@ use Repository\BaseRepository;
  * @method User[]    findAll()
  * @method User[]    findBy(array $criteria, array $orderBy = null, $limit = null, $offset = null)
  */
-class UserRepository extends BaseRepository
+class UserRepository extends ServiceEntityRepository implements PasswordUpgraderInterface
 {
+    public function __construct(ManagerRegistry $registry)
+    {
+        parent::__construct($registry, User::class);
+    }
+
+    /**
+     * Used to upgrade (rehash) the user's password automatically over time.
+     */
+    public function upgradePassword(PasswordAuthenticatedUserInterface $user, string $newHashedPassword): void
+    {
+        if (!$user instanceof User) {
+            throw new UnsupportedUserException(sprintf('Instances of "%s" are not supported.', \get_class($user)));
+        }
+
+        $user->setPassword($newHashedPassword);
+        $this->_em->persist($user);
+        $this->_em->flush();
+    }
+
     // /**
     //  * @return User[] Returns an array of User objects
     //  */
@@ -46,37 +64,4 @@ class UserRepository extends BaseRepository
         ;
     }
     */
-    protected static function entityClass(): string
-    {
-        return User::class;
-    }
-
-    public function findOneByEmailOrFail(string $email):User
-    {
-        if(null === $user = $this->objectRepository->findOneBy(['email'=>$email])){
-            throw UserNotFoundException::fromEmail($email);
-        }
-
-        return $user;
-    }
-
-    /**
-     * @param User $user
-     * @throws ORMException
-     * @throws OptimisticLockException
-     */
-    public function save(User $user):void
-    {
-        $this->saveEntity($user);
-    }
-
-    /**
-     * @param User $user
-     * @throws ORMException
-     * @throws OptimisticLockException
-     */
-    public function remove(User $user):void
-    {
-        $this->removeEntity($user);
-    }
 }

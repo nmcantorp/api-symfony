@@ -32,3 +32,6 @@ services:
 #    App\Controller\Listener\JsonExceptionResponseTransformerListener:
 #        tags:
 #            - { name: kernel.event_listener, event: kernel.exception }
+
+    app.services.user.user_register_service:
+        class: App\Services\User\UserRegisterService
