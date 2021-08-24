@@ -21,6 +21,11 @@ class UserRegisteredMessageHandler implements MessageHandlerInterface
         $this->host = $host;
     }
 
+    /**
+     * @throws \Twig\Error\SyntaxError
+     * @throws \Twig\Error\RuntimeError
+     * @throws \Twig\Error\LoaderError
+     */
     public function __invoke(UserRegisterMessage $message):void
     {
         $payload = [

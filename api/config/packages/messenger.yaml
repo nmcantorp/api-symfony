@@ -7,7 +7,6 @@ framework:
             symfony_serializer:
                 format: json
                 context: { }
-        failure_transport: failed
 
         transports:
             # https://symfony.com/doc/current/messenger.html#transport-configuration
@@ -16,11 +15,6 @@ framework:
             # sync: 'sync://'
             amqp_user:
                 dsn: '%env(MESSENGER_TRANSPORT_DSN)%'
-                serializer: Mailer\Serializer\Messenger\EventSerializer
-                retry_strategy:
-                    max_retries: 1
-                    delay: 1000
-                    multiplier: 1
                 options:
                     vhost: '%env(MESSENGER_VHOST)%'
                     exchange:
@@ -30,10 +24,7 @@ framework:
                         user_queue:
                             binding_keys: [user_queue]
                     auto_setup: true
-            failed:
-                dsn: 'doctrine://default?queue_name=failed'
-
         routing:
             # Route your messages to the transports
             # 'App\Message\YourMessage': async
-            'Mailer\Messenger\Message\UserRegisterMessage': amqp_user
+            'App\Messenger\Message\UserRegisterMessage': amqp_user

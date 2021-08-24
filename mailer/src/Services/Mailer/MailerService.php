@@ -21,6 +21,14 @@ class MailerService
     private LoggerInterface $logger;
     private string $mailerDefaultSender;
 
+    /**
+     * @param string $receiver
+     * @param string $template
+     * @param array $payload
+     * @throws \Twig\Error\LoaderError
+     * @throws \Twig\Error\RuntimeError
+     * @throws \Twig\Error\SyntaxError
+     */
     public function send(string $receiver, string $template, array $payload):void
     {
         $email = (new Email())

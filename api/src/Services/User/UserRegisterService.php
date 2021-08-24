@@ -43,11 +43,11 @@ class UserRegisterService
             $this->userPasswordHasher->hashPassword($user, $data['password'])
         );
 
-        $temporal = $this->messageBus->dispatch(
+        $this->messageBus->dispatch(
             new UserRegisterMessage($user->getId(), $user->getName(), $user->getEmail(), $user->getToken()),
-            [new AmqpStamp(RoutingKey::USERQUEUE)]
+            [new AmqpStamp(RoutingKey::USER_QUEUE)]
         );
-dump($temporal);die;
+
         return $user;
     }
 }

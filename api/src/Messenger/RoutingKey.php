@@ -6,5 +6,5 @@ namespace App\Messenger;
 
 abstract class RoutingKey
 {
-    public const USERQUEUE = "user_queue";
+    public const USER_QUEUE = "user_queue";
 }

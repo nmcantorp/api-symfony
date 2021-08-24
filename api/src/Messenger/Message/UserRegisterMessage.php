@@ -1,5 +1,6 @@
 <?php
-namespace Mailer\Messenger\Message;
+
+namespace App\Messenger\Message;
 
 class UserRegisterMessage
 {

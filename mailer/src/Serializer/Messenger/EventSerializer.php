@@ -29,11 +29,13 @@ class EventSerializer extends Serializer
      */
     private function translateType(string $type): string
     {
-        $map = ['App\Messenger\Message\UserRegisteredMessage' =>UserRegisterMessage::class];
+        $map = ['App\Messenger\Message\UserRegisterMessage' =>'Mailer\Messenger\Message\UserRegisterMessage'];
 
         if(array_key_exists($type, $map)){
             return $map[$type];
         }
+
+        return $type;
 
     }
 }
